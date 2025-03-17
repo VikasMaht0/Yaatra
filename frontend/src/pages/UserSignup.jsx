@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useContext, useState } from 'react'
+import { Link,useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import UserContext, { UserDataContext } from '../context/UserContext'
 
 function UserSignup() {
 
@@ -9,25 +11,46 @@ function UserSignup() {
   const [password, setPassword] = useState('')
   const [userData, setUserData] = useState({});
 
+  const navigate = useNavigate();
   
-      const submitHandler = (e) => {
-          e.preventDefault()
-          setUserData({
-             fullName:{
-              firstName:firstName,
-              lastName:lastName,
-             },
-              email:email,
-              password:password
-          })
-         
-          console.log(userData);
-          setFirstName("");
-          setLastName("");
-          setEmail("");
-          setPassword("");
-        
+  const {user,setUser} = useContext(UserDataContext)
+
+  
+  const submitHandler = async (e) => {
+    e.preventDefault();
+  
+    const newUser = {
+      fullname: {
+        firstname: firstName,
+        lastname: lastName,
+      },
+      email: email,
+      password: password
+    };
+  
+    console.log("User Data being sent:", newUser); // Debugging
+  
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/register`, newUser);
+      
+      if (response.status === 201) {
+        const data = response.data;
+        setUser(data.user);
+        localStorage.setItem('token',data.token);
+        navigate('/home');
+     
       }
+    } catch (error) {
+      console.error("Signup Error:", error.response?.data || error.message);
+      alert(`Signup failed: ${error.response?.data?.message || "Unknown error"}`);
+    }
+  
+    setFirstName("");
+    setLastName("");
+    setEmail("");
+    setPassword("");
+  };
+  
   return (
     <div>
           <div className='p-7 h-screen flex flex-col justify-between'>
